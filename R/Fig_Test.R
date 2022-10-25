@@ -2,13 +2,14 @@
 options(timeout=3600)
 library(rgdal)
 library(rFIA)
+source("./R/functionsFIA.R")
 source("./R/readWriteGet.R")
 
-fiaIN <- readFIA("/Users/malbarn/OneDrive - Indiana University/Proposals/2022_NASA_CMS/Figs/IN/", state="IN")
+fiaIN <- readFIA(dir="/Users/malbarn/OneDrive - Indiana University/Proposals/2022_NASA_CMS/Figs/IN/", state="IN")
 str(fiaIN)
 shape <- readOGR("/Users/malbarn/OneDrive - Indiana University/Proposals/2022_NASA_CMS/Figs/FIA_Forest_Biomass_Estimates_1873/data/CONUSbiohex2020/CONUSbiohex2020.shp")
 
-
+fiaIN
 riMR <- clipFIA(fiaIN)
 riall <- clipFIA(fiaIN,44)
 findEVALID(fiaIN)
@@ -17,7 +18,7 @@ biomassRI <- biomass(fiaIN, returnSpatial = TRUE, tidy=FALSE)
 plotFIA(biomassRI, BIO_ACRE)
 
 
-fiaIN$COND$STDAGE[fiaIN$COND$STDAGE < 0] <- NA
+fiaIN$COND$STDAGE[fiaIN$COND$STDAGE < 0] <- NAr
 makeClasses(fiaIN$COND$STDAGE, interval = 25)
 
 bio_pltSF <- biomass(fiaIN, byPlot=TRUE, returnSpatial = TRUE)
