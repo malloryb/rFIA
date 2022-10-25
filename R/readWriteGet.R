@@ -20,6 +20,16 @@ readFIA <- function(dir = NULL,
                     nCores = 1,
                     ...){
 
+  ## Must specify dir or con
+  if (is.null(dir) & is.null(con)) {
+    stop('Must specify `dir` or `con`. If reading from csv files, set `dir` to the directory where your FIA data lives.')
+  }
+
+  ## Need schema if reading from a database
+  if (!is.null(con) & is.null(schema)) {
+    stop('Must specify `schema` when reading data from a database connection (`con`).')
+  }
+
   ## Attempt to read from database
   if (!is.null(con)) {
     db <- readFIA.db(con, schema, states, tables, common, inMemory)
@@ -130,11 +140,11 @@ readFIA <- function(dir = NULL,
     if (!is.null(tables)){
       files <- files[file.sub %in% tables]
 
-    # Otherwise if common=TRUE, grab all common
+      # Otherwise if common=TRUE, grab all common
     } else if (common) {
       files <- files[file.sub %in% cFiles]
 
-    # Otherwise only known FIA tables
+      # Otherwise only known FIA tables
     } else {
       files <- files[file.sub %in% intData$fiaTableNames]
     }
@@ -192,6 +202,11 @@ readFIA <- function(dir = NULL,
     ## inMemory = FALSE
   } else {
 
+    ## Can't use remote methods w/ full database
+    if (any(str_detect(str_to_upper(states), 'ENTIRE'))) {
+      stop('Remote methods undefind for ENTIRE. Please use `inMemory=TRUE`. Resulting FIA.Database will be quite large (~50GB).')
+    }
+
     ## IF states isn't given, default to all
     ## states in the directory
     if (is.null(states)){
@@ -204,6 +219,7 @@ readFIA <- function(dir = NULL,
       if (length(states) < 1) states <- 1
     }
 
+
     ## Saving the call to readFIA, for eval later
     out <- list(dir = dir,
                 common = common,
@@ -214,6 +230,13 @@ readFIA <- function(dir = NULL,
     class(out) <- 'Remote.FIA.Database'
   }
 
+  ## Think this is the problem
+  ## If WY updates the END_INVYR for 2018 & 2019 (i.e., not set it as 2020)
+  ## then we can drop this. Until then, we have to strong arm END_INVYR
+
+  return(out)
+
+}
 
 
 
@@ -677,4 +700,4 @@ writeFIA <- function(db,
   }
 
 }
-}
+
